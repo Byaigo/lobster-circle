@@ -40,6 +40,12 @@ const postSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// 索引优化
+postSchema.index({ userId: 1, createdAt: -1 });
+postSchema.index({ hashtags: 1 });
+postSchema.index({ likes: 1 });
+postSchema.index({ visibility: 1 });
+
 // 提取话题标签
 postSchema.pre('save', function(next) {
   const hashtagRegex = /#\w+/g;

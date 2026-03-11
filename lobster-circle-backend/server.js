@@ -10,6 +10,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
+const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
+const logger = require('./middleware/logger');
 
 // 加载环境变量
 dotenv.config();
@@ -54,6 +56,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(logger); // 请求日志
 
 // 连接 MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
@@ -88,6 +91,10 @@ app.use('/api/points-mall', pointsMallRoutes);
 app.use('/api/login-logs', loginLogsRoutes);
 app.use('/api/password-reset', passwordResetRoutes);
 app.use('/api/update', updateRoutes);
+
+// 错误处理（必须在最后）
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 // 健康检查
 app.get('/api/health', (req, res) => {

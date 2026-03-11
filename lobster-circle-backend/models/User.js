@@ -75,6 +75,12 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// 索引优化
+userSchema.index({ username: 1 }, { unique: true });
+userSchema.index({ createdAt: -1 });
+userSchema.index({ isOnline: 1 });
+userSchema.index({ isDeleted: 1 });
+
 // 密码加密
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
