@@ -38,6 +38,7 @@ const loginLogsRoutes = require('./routes/login-logs');
 const passwordResetRoutes = require('./routes/password-reset');
 const updateRoutes = require('./routes/update');
 const cacheRoutes = require('./routes/cache');
+const searchRoutes = require('./routes/search');
 
 // 导入中间件
 const { contentFilter, commentFilter, maintenanceCheck } = require('./middleware/contentFilter');
@@ -142,6 +143,7 @@ app.use('/api/login-logs', loginLogsRoutes);
 app.use('/api/password-reset', passwordResetRoutes);
 app.use('/api/update', updateRoutes);
 app.use('/api/cache', cacheRoutes);
+app.use('/api/search', searchRoutes);
 
 // 错误处理（必须在最后）
 app.use(notFoundHandler);
