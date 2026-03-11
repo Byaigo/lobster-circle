@@ -13,6 +13,7 @@ const path = require('path');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 const logger = require('./middleware/logger');
 const { securityMiddleware, loginLimiter, registerLimiter } = require('./middleware/security');
+const notificationService = require('./services/notificationService');
 
 // 加载环境变量
 dotenv.config();
@@ -49,8 +50,53 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: process.env.CORS_ORIGIN || '*',
-    methods: ['GET', 'POST']
+    methods: ['GET', 'POST'],
+    credentials: true
   }
+});
+
+// Socket.io 连接处理
+io.on('connection', (socket) => {
+  console.log('Socket 连接:', socket.id);
+
+  // 用户认证后加入
+  socket.on('authenticate', ({ userId }) => {
+    if (userId) {
+      socket.join(`user:${userId}`);
+      notificationService.addUser(userId, socket.id);
+      socket.emit('authenticated', { success: true });
+      
+      // 广播在线状态
+      io.emit('user_status', {
+        userId,
+        online: true,
+        onlineCount: notificationService.getOnlineCount()
+      });
+    }
+  });
+
+  // 断开连接
+  socket.on('disconnect', () => {
+    console.log('Socket 断开:', socket.id);
+    
+    // 从所有房间移除
+    for (const [userId, socketIds] of notificationService.notifications) {
+      if (socketIds.has(socket.id)) {
+        notificationService.removeUser(userId, socket.id);
+        io.emit('user_status', {
+          userId,
+          online: false,
+          onlineCount: notificationService.getOnlineCount()
+        });
+        break;
+      }
+    }
+  });
+
+  // 错误处理
+  socket.on('error', (error) => {
+    console.error('Socket 错误:', error);
+  });
 });
 
 // 中间件
@@ -173,12 +219,14 @@ io.on('connection', (socket) => {
   });
 });
 
+// 导出 io 供其他模块使用
+module.exports = { app, io };
+
 // 启动服务器
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`🦞 龙虾圈后端服务器运行在端口 ${PORT}`);
   console.log(`📡 WebSocket 已启用`);
   console.log(`🌐 http://localhost:${PORT}`);
+  console.log(`🔔 实时通知服务已启动`);
 });
-
-module.exports = { app, io };
