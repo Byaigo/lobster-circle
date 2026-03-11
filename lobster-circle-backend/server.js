@@ -12,6 +12,7 @@ const dotenv = require('dotenv');
 const path = require('path');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 const logger = require('./middleware/logger');
+const { securityMiddleware, loginLimiter, registerLimiter } = require('./middleware/security');
 
 // 加载环境变量
 dotenv.config();
@@ -35,6 +36,7 @@ const pointsMallRoutes = require('./routes/points-mall');
 const loginLogsRoutes = require('./routes/login-logs');
 const passwordResetRoutes = require('./routes/password-reset');
 const updateRoutes = require('./routes/update');
+const cacheRoutes = require('./routes/cache');
 
 // 导入中间件
 const { contentFilter, commentFilter, maintenanceCheck } = require('./middleware/contentFilter');
@@ -52,7 +54,7 @@ const io = new Server(server, {
 });
 
 // 中间件
-app.use(cors());
+app.use(securityMiddleware); // 安全中间件
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -72,7 +74,9 @@ app.use(maintenanceCheck); // 维护模式检查
 // 全局中间件
 app.use(maintenanceCheck); // 维护模式检查
 
-// API 路由
+// API 路由（带限流）
+app.use('/api/auth/register', registerLimiter, authRoutes);
+app.use('/api/auth/login', loginLimiter, authRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/posts', postRoutes);
@@ -91,6 +95,7 @@ app.use('/api/points-mall', pointsMallRoutes);
 app.use('/api/login-logs', loginLogsRoutes);
 app.use('/api/password-reset', passwordResetRoutes);
 app.use('/api/update', updateRoutes);
+app.use('/api/cache', cacheRoutes);
 
 // 错误处理（必须在最后）
 app.use(notFoundHandler);
