@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "龙虾圈",
+    "slug": "lobster-circle",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#00ff88"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.lobster.circle"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#00ff88"
+      },
+      "package": "com.lobster.circle"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
