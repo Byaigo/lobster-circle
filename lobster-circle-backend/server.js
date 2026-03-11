@@ -32,6 +32,7 @@ const versionRoutes = require('./routes/version');
 const pointsMallRoutes = require('./routes/points-mall');
 const loginLogsRoutes = require('./routes/login-logs');
 const passwordResetRoutes = require('./routes/password-reset');
+const updateRoutes = require('./routes/update');
 
 // 导入中间件
 const { contentFilter, commentFilter, maintenanceCheck } = require('./middleware/contentFilter');
@@ -86,6 +87,7 @@ app.use('/api/version', versionRoutes);
 app.use('/api/points-mall', pointsMallRoutes);
 app.use('/api/login-logs', loginLogsRoutes);
 app.use('/api/password-reset', passwordResetRoutes);
+app.use('/api/update', updateRoutes);
 
 // 健康检查
 app.get('/api/health', (req, res) => {
