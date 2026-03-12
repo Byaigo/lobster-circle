@@ -7,7 +7,7 @@ import { StyleSheet, Text, View, TouchableOpacity, SafeAreaView, Switch, FlatLis
 import { API_BASE_URL } from '../config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function SettingsScreen({ currentUser, darkMode, setDarkMode }) {
+export default function SettingsScreen({ currentUser, darkMode, setDarkMode, navigation }) {
   const [settings, setSettings] = useState({
     allowPost: true,
     allowComment: true,
@@ -125,10 +125,13 @@ export default function SettingsScreen({ currentUser, darkMode, setDarkMode }) {
       {/* 关于 */}
       <View style={[styles.section, darkMode && styles.sectionDark]}>
         <Text style={[styles.sectionTitle, darkMode && styles.textDark]}>ℹ️ 关于</Text>
-        <View style={styles.aboutItem}>
-          <Text style={[styles.aboutLabel, darkMode && styles.textDark]}>版本号</Text>
-          <Text style={[styles.aboutValue, darkMode && styles.textMuted]}>3.1.0</Text>
-        </View>
+        <TouchableOpacity 
+          style={styles.aboutItem}
+          onPress={() => navigation.navigate('About')}
+        >
+          <Text style={[styles.aboutLabel, darkMode && styles.textDark]}>关于我们</Text>
+          <Text style={styles.arrow}>›</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.aboutItem}>
           <Text style={[styles.aboutLabel, darkMode && styles.textDark]}>用户协议</Text>
           <Text style={styles.arrow}>›</Text>
