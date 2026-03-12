@@ -3,11 +3,11 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, SafeAreaView, Alert, ActivityIndicator } from 'react-native';
 import { API_BASE_URL } from '../config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function CheckInScreen({ darkMode }) {
+export default function CheckInScreen({ darkMode, navigation }) {
   const [checkInStatus, setCheckInStatus] = useState({
     checkedInToday: false,
     streak: 0,
@@ -37,14 +37,14 @@ export default function CheckInScreen({ darkMode }) {
   const handleCheckIn = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/checkin`, {
+      const response = await fetch(`${API_BASE_URL}/checkin/do`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
 
-      if (data.points) {
-        Alert.alert('签到成功', `获得 ${data.points} 积分，连续签到 ${data.streak} 天！`);
+      if (data.success) {
+        Alert.alert('签到成功', `获得 ${data.points} 积分，连续签到 ${data.continuousDays} 天！`);
         loadCheckInStatus();
       } else {
         Alert.alert('提示', data.error || '签到失败');
@@ -89,10 +89,19 @@ export default function CheckInScreen({ darkMode }) {
         </TouchableOpacity>
       )}
 
+      <TouchableOpacity 
+        style={styles.historyButton}
+        onPress={() => navigation.navigate('CheckInHistory')}
+      >
+        <Text style={styles.historyButtonText}>📊 查看签到记录</Text>
+      </TouchableOpacity>
+
       <View style={styles.rules}>
         <Text style={[styles.rulesTitle, darkMode && styles.textDark]}>📋 签到规则</Text>
-        <Text style={[styles.ruleItem, darkMode && styles.textMuted]}>• 每日签到可获得 10-17 积分</Text>
-        <Text style={[styles.ruleItem, darkMode && styles.textMuted]}>• 连续签到额外奖励</Text>
+        <Text style={[styles.ruleItem, darkMode && styles.textMuted]}>• 每日签到可获得 10-50 积分</Text>
+        <Text style={[styles.ruleItem, darkMode && styles.textMuted]}>• 连续 7 天奖励 20 分</Text>
+        <Text style={[styles.ruleItem, darkMode && styles.textMuted]}>• 连续 14 天奖励 30 分</Text>
+        <Text style={[styles.ruleItem, darkMode && styles.textMuted]}>• 连续 30 天奖励 50 分</Text>
         <Text style={[styles.ruleItem, darkMode && styles.textMuted]}>• 积分可用于兑换礼品</Text>
       </View>
     </SafeAreaView>
@@ -120,4 +129,6 @@ const styles = StyleSheet.create({
   rules: { margin: 20, padding: 20, backgroundColor: '#fff', borderRadius: 15 },
   rulesTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 10 },
   ruleItem: { fontSize: 14, marginVertical: 5 },
+  historyButton: { margin: 20, padding: 15, backgroundColor: '#f0f0f0', borderRadius: 15, alignItems: 'center' },
+  historyButtonText: { fontSize: 16, fontWeight: 'bold', color: '#666' },
 });
