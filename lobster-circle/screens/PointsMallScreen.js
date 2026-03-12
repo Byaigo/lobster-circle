@@ -46,14 +46,19 @@ const mockProducts = [
   },
 ];
 
-export default function PointsMallScreen({ darkMode }) {
+export default function PointsMallScreen({ darkMode, navigation }) {
   const [userPoints, setUserPoints] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState([]);
+  const [exchangeModal, setExchangeModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [products, setProducts] = useState(mockProducts);
   const [exchangeModalVisible, setExchangeModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
   React.useEffect(() => {
     loadUserPoints();
+    loadProducts();
   }, []);
 
   const loadUserPoints = async () => {
@@ -66,6 +71,27 @@ export default function PointsMallScreen({ darkMode }) {
       setUserPoints(data.points || 0);
     } catch (error) {
       console.error('加载积分失败:', error);
+      setUserPoints(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadProducts = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/points-mall/products`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      if (data.products) {
+        setProducts(data.products);
+      } else {
+        setProducts(mockProducts);
+      }
+    } catch (error) {
+      console.error('加载商品失败:', error);
+      setProducts(mockProducts);
     }
   };
 
@@ -77,22 +103,29 @@ export default function PointsMallScreen({ darkMode }) {
       return;
     }
 
-    Alert.alert(
-      '确认兑换',
-      `确定要兑换"${selectedProduct.name}"吗？\n需要 ${selectedProduct.points} 积分`,
-      [
-        { text: '取消', style: 'cancel' },
-        {
-          text: '确定',
-          onPress: async () => {
-            // 模拟兑换
-            setUserPoints(userPoints - selectedProduct.points);
-            Alert.alert('兑换成功', '商品将在 3-5 个工作日内发货');
-            setExchangeModalVisible(false);
-          },
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/points-mall/exchange`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
-      ]
-    );
+        body: JSON.stringify({ productId: selectedProduct.id }),
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        Alert.alert('兑换成功', '商品将在 3-5 个工作日内发货');
+        setUserPoints(userPoints - selectedProduct.points);
+        setExchangeModal(false);
+        loadProducts(); // 刷新库存
+      } else {
+        Alert.alert('兑换失败', data.error || '请稍后重试');
+      }
+    } catch (error) {
+      Alert.alert('错误', '兑换失败');
+    }
   };
 
   const renderProduct = ({ item }) => (
@@ -100,7 +133,8 @@ export default function PointsMallScreen({ darkMode }) {
       style={[styles.productCard, darkMode && styles.productCardDark]}
       onPress={() => {
         setSelectedProduct(item);
-        setExchangeModalVisible(true);
+        setSelectedProduct(item);
+        setExchangeModal(true);
       }}
     >
       <Image source={{ uri: item.image }} style={styles.productImage} />
@@ -141,7 +175,7 @@ export default function PointsMallScreen({ darkMode }) {
         visible={exchangeModalVisible}
         transparent={true}
         animationType="slide"
-        onRequestClose={() => setExchangeModalVisible(false)}
+        onRequestClose={() => setExchangeModal(false)}
       >
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, darkMode && styles.modalContentDark]}>
