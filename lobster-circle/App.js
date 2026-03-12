@@ -18,7 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 
 // 导入 API 和 Socket
-import api, { authAPI, postAPI, friendAPI, messageAPI } from './api';
+import api, { authAPI, postAPI, friendAPI, messageAPI, uploadAPI } from './api';
 import socketService from './socket';
 
 // 导入页面
@@ -138,6 +138,14 @@ function AuthScreen({ onLogin, darkMode }) {
           )}
         </TouchableOpacity>
         
+        {/* 发布按钮加载状态 */}
+        {loading && (
+          <View style={styles.publishLoadingOverlay}>
+            <ActivityIndicator size="large" color="#00ff88" />
+            <Text style={styles.publishLoadingText}>发布中...</Text>
+          </View>
+        )}
+        
         <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
           <Text style={styles.authSwitch}>{isLogin ? '没有账号？去注册' : '已有账号？去登录'}</Text>
         </TouchableOpacity>
@@ -158,6 +166,7 @@ function HomeScreen({ currentUser, users, posts, setPosts, favorites, setFavorit
   const [visibility, setVisibility] = useState('public');
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -175,29 +184,52 @@ function HomeScreen({ currentUser, users, posts, setPosts, favorites, setFavorit
       return;
     }
 
-    const post = {
-      id: Date.now().toString(),
-      userId: currentUser.id,
-      content: newPost,
-      image: selectedImage,
-      likes: [],
-      comments: [],
-      timestamp: '刚刚',
-      isFavorite: false,
-      visibility
-    };
+    setLoading(true);
 
     try {
-      await postAPI.create(newPost, selectedImage ? [{ url: selectedImage }] : [], visibility);
-    } catch (error) {
-      console.log('后端不可用，使用本地模式');
-    }
+      let imageUrl = null;
+      
+      // 如果有图片，先上传到七牛云
+      if (selectedImage) {
+        try {
+          const uploadResult = await uploadAPI.uploadImage(selectedImage);
+          imageUrl = uploadResult.url;
+          console.log('图片上传成功:', imageUrl);
+        } catch (uploadError) {
+          console.log('图片上传失败，使用本地模式:', uploadError);
+          imageUrl = selectedImage; // 降级使用本地图片
+        }
+      }
 
-    setPosts([post, ...posts]);
-    setNewPost('');
-    setSelectedImage(null);
-    setModalVisible(false);
-    Alert.alert('发布成功', '你的动态已发布！');
+      // 发布动态
+      const post = {
+        id: Date.now().toString(),
+        userId: currentUser.id,
+        content: newPost,
+        image: imageUrl,
+        likes: [],
+        comments: [],
+        timestamp: '刚刚',
+        isFavorite: false,
+        visibility
+      };
+
+      try {
+        await postAPI.create(newPost, imageUrl ? [{ url: imageUrl }] : [], visibility);
+      } catch (error) {
+        console.log('后端不可用，使用本地模式');
+      }
+
+      setPosts([post, ...posts]);
+      setNewPost('');
+      setSelectedImage(null);
+      setModalVisible(false);
+      Alert.alert('发布成功', '你的动态已发布！');
+    } catch (error) {
+      Alert.alert('发布失败', error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const likePost = async (postId) => {
@@ -856,5 +888,9 @@ const styles = StyleSheet.create({
   // 空状态
   emptyState: { alignItems: 'center', padding: 50 },
   emptyText: { fontSize: 18, fontWeight: 'bold', color: '#666', marginBottom: 10 },
-  emptySubtext: { fontSize: 14, color: '#999' }
+  emptySubtext: { fontSize: 14, color: '#999' },
+  
+  // 发布加载状态
+  publishLoadingOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', alignItems: 'center' },
+  publishLoadingText: { color: '#fff', fontSize: 16, marginTop: 10, fontWeight: 'bold' }
 });
