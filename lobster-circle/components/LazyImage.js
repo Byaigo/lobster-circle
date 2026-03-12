@@ -1,47 +1,101 @@
 /**
- * 图片懒加载组件
+ * 懒加载图片组件
+ * 支持渐进式加载、缓存、占位图
  */
 
 import React, { useState, useEffect } from 'react';
-import { Image, ActivityIndicator, View, StyleSheet } from 'react-native';
+import { Image, StyleSheet, View, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const CACHE_KEY_PREFIX = 'image_cache_';
 
 export default function LazyImage({
   source,
   style,
-  placeholderColor = '#f0f0f0',
-  resizeMode = 'cover'
+  placeholderColor = '#e0e0e0',
+  useCache = true,
+  resizeMode = 'cover',
+  onLoad,
+  onError,
 }) {
   const [loading, setLoading] = useState(true);
+  const [cachedImage, setCachedImage] = useState(null);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    loadCachedImage();
+  }, [source.uri]);
+
+  const loadCachedImage = async () => {
+    if (!useCache || !source.uri) return;
+
+    try {
+      const cacheKey = CACHE_KEY_PREFIX + source.uri.replace(/[^a-zA-Z0-9]/g, '_');
+      const cachedData = await AsyncStorage.getItem(cacheKey);
+      
+      if (cachedData) {
+        setCachedImage(cachedData);
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('加载缓存失败:', error);
+    }
+  };
+
+  const handleLoad = async (event) => {
+    setLoading(false);
+    
+    if (useCache && source.uri) {
+      try {
+        const cacheKey = CACHE_KEY_PREFIX + source.uri.replace(/[^a-zA-Z0-9]/g, '_');
+        await AsyncStorage.setItem(cacheKey, source.uri);
+      } catch (error) {
+        console.error('缓存图片失败:', error);
+      }
+    }
+
+    if (onLoad) {
+      onLoad(event);
+    }
+  };
+
+  const handleError = (error) => {
+    setLoading(false);
+    setError(true);
+    
+    if (onError) {
+      onError(error);
+    }
+  };
 
   return (
     <View style={[styles.container, style]}>
       {loading && (
         <View style={[styles.placeholder, { backgroundColor: placeholderColor }]}>
-          <ActivityIndicator size="small" color="#999" />
+          <ActivityIndicator color="#fff" size="small" />
         </View>
       )}
       
       {!error && (
         <Image
-          source={source}
-          style={[styles.image, style]}
-          resizeMode={resizeMode}
-          onLoadStart={() => setLoading(true)}
-          onLoadEnd={() => setLoading(false)}
-          onError={() => {
-            setLoading(false);
-            setError(true);
+          source={{
+            uri: cachedImage || source.uri,
+            cache: useCache ? 'force-cache' : 'default',
           }}
+          style={[
+            styles.image,
+            { opacity: loading ? 0 : 1 },
+            style,
+          ]}
+          resizeMode={resizeMode}
+          onLoad={handleLoad}
+          onError={handleError}
         />
       )}
       
       {error && (
-        <View style={[styles.error, { backgroundColor: placeholderColor }]}>
-          <View style={styles.errorIcon}>
-            <View style={styles.errorLine1} />
-            <View style={styles.errorLine2} />
-          </View>
+        <View style={[styles.errorPlaceholder, { backgroundColor: placeholderColor }]}>
+          <Text style={styles.errorText}>⚠️</Text>
         </View>
       )}
     </View>
@@ -50,36 +104,24 @@ export default function LazyImage({
 
 const styles = StyleSheet.create({
   container: {
-    overflow: 'hidden'
+    overflow: 'hidden',
+    position: 'relative',
   },
   placeholder: {
     ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center'
   },
   image: {
-    ...StyleSheet.absoluteFillObject
+    width: '100%',
+    height: '100%',
   },
-  error: {
+  errorPlaceholder: {
     ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center'
   },
-  errorIcon: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center'
+  errorText: {
+    fontSize: 24,
   },
-  errorLine1: {
-    width: 30,
-    height: 2,
-    backgroundColor: '#ccc',
-    marginBottom: 4
-  },
-  errorLine2: {
-    width: 20,
-    height: 2,
-    backgroundColor: '#ccc'
-  }
 });
