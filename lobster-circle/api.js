@@ -218,10 +218,81 @@ export const messageAPI = {
   }
 };
 
+// ==================== 图片上传 API（七牛云） ====================
+export const uploadAPI = {
+  // 上传图片（服务器中转模式）
+  uploadImage: async (uri) => {
+    const token = await getToken();
+    const formData = new FormData();
+    
+    // React Native 图片上传格式
+    const file = {
+      uri,
+      type: 'image/jpeg',
+      name: `lobster_${Date.now()}.jpg`
+    };
+    
+    formData.append('image', file);
+
+    const response = await fetch(`${API_BASE_URL}/storage/image`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || '上传失败');
+    }
+
+    return data;
+  },
+
+  // 批量上传图片
+  uploadImages: async (uris) => {
+    const token = await getToken();
+    const formData = new FormData();
+    
+    uris.forEach((uri, index) => {
+      const file = {
+        uri,
+        type: 'image/jpeg',
+        name: `lobster_${Date.now()}_${index}.jpg`
+      };
+      formData.append('images', file);
+    });
+
+    const response = await fetch(`${API_BASE_URL}/storage/images`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || '上传失败');
+    }
+
+    return data;
+  },
+
+  // 获取上传凭证（客户端直传七牛云模式）
+  getUploadToken: async () => {
+    return await request('/storage/upload-token');
+  }
+};
+
 export default {
   auth: authAPI,
   user: userAPI,
   post: postAPI,
   friend: friendAPI,
-  message: messageAPI
+  message: messageAPI,
+  upload: uploadAPI
 };
