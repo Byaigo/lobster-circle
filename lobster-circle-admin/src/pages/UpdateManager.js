@@ -47,6 +47,33 @@ export default function UpdateManager() {
         url: latest.html_url,
         body: latest.body
       });
+
+      // 解析更新日志
+      const notes = latest.body.split('\n').filter(line => line.startsWith('-')).map(line => line.substring(2));
+      setReleaseNotes(notes);
+      
+      // 比较版本
+      const hasNewVersion = compareVersions(latestVer, currentVersion) > 0;
+      setHasUpdate(hasNewVersion);
+    } catch (error) {
+      message.error('检查更新失败');
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  // 版本比较
+  const compareVersions = (v1, v2) => {
+    const parts1 = v1.split('.').map(Number);
+    const parts2 = v2.split('.').map(Number);
+    for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
+      const num1 = parts1[i] || 0;
+      const num2 = parts2[i] || 0;
+      if (num1 > num2) return 1;
+      if (num1 < num2) return -1;
+    }
+    return 0;
+  };
       
       // 解析更新日志
       const notes = latest.body.split('\n').filter(line => line.startsWith('-')).map(line => {
