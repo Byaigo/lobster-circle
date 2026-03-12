@@ -24,6 +24,8 @@ import socketService from './socket';
 // 导入页面
 import FriendsScreen from './screens/FriendsScreen';
 import ChatScreen from './screens/ChatScreen';
+import AboutScreen from './screens/AboutScreen';
+import CheckInHistoryScreen from './screens/CheckInHistoryScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -738,6 +740,12 @@ export default function App() {
         </Stack.Screen>
         <Stack.Screen name="Chat">
           {props => <ChatScreen {...props} currentUser={currentUser} darkMode={darkMode} />}
+        </Stack.Screen>
+        <Stack.Screen name="About">
+          {props => <AboutScreen {...props} darkMode={darkMode} />}
+        </Stack.Screen>
+        <Stack.Screen name="CheckInHistory">
+          {props => <CheckInHistoryScreen {...props} darkMode={darkMode} />}
         </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
