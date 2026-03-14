@@ -109,6 +109,9 @@ const customizeRoutes = require('./routes/customize');
 // 互动娱乐功能路由
 const entertainmentRoutes = require('./routes/entertainment');
 
+// 工具类功能路由
+const toolsRoutes = require('./routes/tools');
+
 // 注册路由
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -139,6 +142,9 @@ app.use('/api/customize', customizeRoutes);
 
 // 互动娱乐功能
 app.use('/api/entertainment', entertainmentRoutes);
+
+// 工具类功能
+app.use('/api/tools', toolsRoutes);
 
 // 404 处理
 app.use((req, res) => {
