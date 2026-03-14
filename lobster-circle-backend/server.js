@@ -144,6 +144,7 @@ app.use('/api/password-reset', passwordResetRoutes);
 app.use('/api/update', updateRoutes);
 app.use('/api/cache', cacheRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/errors', errorRoutes);
 
 // 错误处理（必须在最后）
 app.use(notFoundHandler);

@@ -20,6 +20,7 @@ import VersionManagement from './pages/VersionManagement';
 import CheckInStats from './pages/CheckInStats';
 import AnalyticsDashboard from './pages/AnalyticsDashboard';
 import LoginLogs from './pages/LoginLogs';
+import ErrorManagement from './pages/ErrorManagement';
 import AdminLayout from './components/AdminLayout';
 
 function App() {
@@ -60,6 +61,7 @@ function App() {
               <Route path="/config" element={<ConfigManagement />} />
               <Route path="/sensitive-words" element={<SensitiveWordManagement />} />
               <Route path="/logs" element={<OperationLogs />} />
+              <Route path="/errors" element={<ErrorManagement />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </AdminLayout>

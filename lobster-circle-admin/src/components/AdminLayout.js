@@ -19,7 +19,8 @@ import {
   CalendarOutlined,
   AppstoreOutlined,
   MessageOutlined,
-  LoginOutlined
+  LoginOutlined,
+  BugOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -43,6 +44,7 @@ export default function AdminLayout({ children, onLogout }) {
     { key: '/config', icon: <SettingOutlined />, label: '系统配置' },
     { key: '/sensitive-words', icon: <SafetyOutlined />, label: '敏感词管理' },
     { key: '/logs', icon: <FileDoneOutlined />, label: '操作日志' },
+    { key: '/errors', icon: <BugOutlined />, label: '错误日志' },
   ];
 
   const handleMenuClick = ({ key }) => {
