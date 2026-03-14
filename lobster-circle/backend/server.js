@@ -7,10 +7,13 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
 const compression = require('compression');
 const path = require('path');
 require('dotenv').config();
+
+// 导入自定义中间件
+const { errorHandler } = require('./middleware/errorHandler');
+const { requestLogger, rateLimit } = require('./middleware/performance');
 
 const app = express();
 
@@ -33,15 +36,13 @@ app.use(cors({
 }));
 
 // 请求限流
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 分钟
-  max: 100, // 每个 IP 最多 100 个请求
-  message: '请求过于频繁，请稍后再试'
-});
-app.use('/api/', limiter);
+app.use('/api/', rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
 
 // 压缩响应
 app.use(compression());
+
+// 请求日志
+app.use(requestLogger);
 
 // 解析 JSON
 app.use(express.json({ limit: '10mb' }));
@@ -149,23 +150,21 @@ app.use('/api/tools', toolsRoutes);
 // 404 处理
 app.use((req, res) => {
   res.status(404).json({
-    error: '接口不存在',
-    path: req.path
+    success: false,
+    error: {
+      message: '接口不存在',
+      code: 'NOT_FOUND',
+      statusCode: 404,
+      path: req.path
+    }
   });
 });
 
 // ============================================
-// 错误处理
+// 统一错误处理
 // ============================================
 
-app.use((err, req, res, next) => {
-  console.error('服务器错误:', err);
-  
-  res.status(err.status || 500).json({
-    error: err.message || '服务器内部错误',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-  });
-});
+app.use(errorHandler);
 
 // ============================================
 // 启动服务器
