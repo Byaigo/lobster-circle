@@ -22,6 +22,7 @@ import { useEffect } from 'react';
 import api, { authAPI, postAPI, friendAPI, messageAPI, uploadAPI } from './api';
 import socketService from './socket';
 import { initNetworkListener, flushOfflineQueue, offlineCreatePost, isOnline } from './services/offlineService';
+import videoService from './services/videoService';
 
 // 导入页面
 import FriendsScreen from './screens/FriendsScreen';
@@ -29,6 +30,8 @@ import ChatScreen from './screens/ChatScreen';
 import AboutScreen from './screens/AboutScreen';
 import CheckInHistoryScreen from './screens/CheckInHistoryScreen';
 import NetworkStatus from './components/NetworkStatus';
+import VideoPostScreen from './screens/VideoPostScreen';
+import VideoPlayer from './components/VideoPlayer';
 
 // 新增社交功能页面
 import NearbyScreen from './screens/NearbyScreen';
@@ -337,6 +340,25 @@ function HomeScreen({ currentUser, users, posts, setPosts, favorites, setFavorit
           </View>
         )}
         {item.image && <Image source={{ uri: item.image }} style={styles.postImage} resizeMode="cover" />}
+        
+        {/* 视频动态 */}
+        {item.videos && item.videos.length > 0 && item.videos.map((video, idx) => (
+          <View key={idx} style={styles.videoContainer}>
+            <VideoPlayer
+              source={{ uri: video.url }}
+              style={styles.postVideo}
+              useNativeControls
+            />
+            {video.duration && (
+              <View style={styles.videoDuration}>
+                <Text style={styles.videoDurationText}>
+                  {videoService.formatDuration(video.duration)}
+                </Text>
+              </View>
+            )}
+          </View>
+        ))}
+        
         <View style={styles.postActions}>
           <TouchableOpacity style={styles.actionButton} onPress={() => likePost(item.id)}>
             <Text style={[styles.actionText, isLiked && styles.liked]}>{isLiked ? '❤️' : '🤍'} {item.likes.length}</Text>
@@ -417,6 +439,12 @@ function HomeScreen({ currentUser, users, posts, setPosts, favorites, setFavorit
             )}
             <TouchableOpacity style={styles.selectImageButton} onPress={pickImage}>
               <Text style={styles.selectImageButtonText}>📷 选择图片</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.selectImageButton, { backgroundColor: '#ff6b6b' }]} 
+              onPress={() => { setModalVisible(false); navigation.navigate('VideoPost'); }}
+            >
+              <Text style={styles.selectImageButtonText}>📹 发布视频</Text>
             </TouchableOpacity>
             <View style={styles.visibilitySelector}>
               <Text style={[styles.visibilityLabel, darkMode && styles.textDark]}>可见范围:</Text>
@@ -791,6 +819,9 @@ export default function App() {
         <Stack.Screen name="Visitors">
           {props => <VisitorsScreen {...props} darkMode={darkMode} />}
         </Stack.Screen>
+        <Stack.Screen name="VideoPost">
+          {props => <VideoPostScreen {...props} darkMode={darkMode} />}
+        </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -841,6 +872,10 @@ const styles = StyleSheet.create({
   hashtagContainer: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 10 },
   hashtag: { color: '#00ff88', marginRight: 8, fontSize: 14 },
   postImage: { width: '100%', height: 200, borderRadius: 10, marginBottom: 10 },
+  videoContainer: { marginBottom: 10, position: 'relative' },
+  postVideo: { width: '100%', height: 300, borderRadius: 10, backgroundColor: '#000' },
+  videoDuration: { position: 'absolute', bottom: 10, right: 10, backgroundColor: 'rgba(0,0,0,0.7)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 },
+  videoDurationText: { color: '#fff', fontSize: 12, fontWeight: 'bold' },
   postActions: { flexDirection: 'row', borderTopWidth: 1, borderTopColor: '#eee', paddingTop: 10 },
   actionButton: { marginRight: 20 },
   actionText: { fontSize: 14, color: '#666' },
