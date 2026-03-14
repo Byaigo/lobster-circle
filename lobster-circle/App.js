@@ -27,6 +27,11 @@ import ChatScreen from './screens/ChatScreen';
 import AboutScreen from './screens/AboutScreen';
 import CheckInHistoryScreen from './screens/CheckInHistoryScreen';
 
+// 新增社交功能页面
+import NearbyScreen from './screens/NearbyScreen';
+import GroupsScreen from './screens/GroupsScreen';
+import VisitorsScreen from './screens/VisitorsScreen';
+
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -746,6 +751,17 @@ export default function App() {
         </Stack.Screen>
         <Stack.Screen name="CheckInHistory">
           {props => <CheckInHistoryScreen {...props} darkMode={darkMode} />}
+        </Stack.Screen>
+        
+        {/* 新增社交功能页面 */}
+        <Stack.Screen name="Nearby">
+          {props => <NearbyScreen {...props} darkMode={darkMode} />}
+        </Stack.Screen>
+        <Stack.Screen name="Groups">
+          {props => <GroupsScreen {...props} darkMode={darkMode} />}
+        </Stack.Screen>
+        <Stack.Screen name="Visitors">
+          {props => <VisitorsScreen {...props} darkMode={darkMode} />}
         </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
