@@ -4,9 +4,10 @@ const Post = require('../models/Post');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 const { contentFilter } = require('../middleware/contentFilter');
+const { auditPost } = require('../middleware/contentAudit');
 
 // 创建动态
-router.post('/', auth, contentFilter, async (req, res) => {
+router.post('/', auth, contentFilter, auditPost, async (req, res) => {
   try {
     const { content, images, visibility = 'public' } = req.body;
 
@@ -142,7 +143,8 @@ router.post('/:postId/favorite', auth, async (req, res) => {
 
 // 添加评论
 const { commentFilter } = require('../middleware/contentFilter');
-router.post('/:postId/comment', auth, commentFilter, async (req, res) => {
+const { auditComment } = require('../middleware/contentAudit');
+router.post('/:postId/comment', auth, commentFilter, auditComment, async (req, res) => {
   try {
     const { text } = req.body;
 
