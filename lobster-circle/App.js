@@ -16,16 +16,19 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
+import { useEffect } from 'react';
 
 // 导入 API 和 Socket
 import api, { authAPI, postAPI, friendAPI, messageAPI, uploadAPI } from './api';
 import socketService from './socket';
+import { initNetworkListener, flushOfflineQueue, offlineCreatePost, isOnline } from './services/offlineService';
 
 // 导入页面
 import FriendsScreen from './screens/FriendsScreen';
 import ChatScreen from './screens/ChatScreen';
 import AboutScreen from './screens/AboutScreen';
 import CheckInHistoryScreen from './screens/CheckInHistoryScreen';
+import NetworkStatus from './components/NetworkStatus';
 
 // 新增社交功能页面
 import NearbyScreen from './screens/NearbyScreen';
@@ -175,6 +178,16 @@ function HomeScreen({ currentUser, users, posts, setPosts, favorites, setFavorit
   const [showSearch, setShowSearch] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // 初始化网络监听
+  useEffect(() => {
+    const cleanup = initNetworkListener();
+    
+    // 网络恢复时刷新离线队列
+    return () => {
+      if (cleanup) cleanup();
+    };
+  }, []);
+
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -221,17 +234,29 @@ function HomeScreen({ currentUser, users, posts, setPosts, favorites, setFavorit
         visibility
       };
 
-      try {
-        await postAPI.create(newPost, imageUrl ? [{ url: imageUrl }] : [], visibility);
-      } catch (error) {
-        console.log('后端不可用，使用本地模式');
+      const online = await isOnline();
+      
+      if (online) {
+        try {
+          await postAPI.create(newPost, imageUrl ? [{ url: imageUrl }] : [], visibility);
+        } catch (error) {
+          console.log('后端不可用，使用离线模式');
+        }
+      } else {
+        // 离线模式：添加到队列
+        await offlineCreatePost(newPost, imageUrl ? [{ url: imageUrl }] : []);
       }
 
       setPosts([post, ...posts]);
       setNewPost('');
       setSelectedImage(null);
       setModalVisible(false);
-      Alert.alert('发布成功', '你的动态已发布！');
+      
+      if (online) {
+        Alert.alert('发布成功', '你的动态已发布！');
+      } else {
+        Alert.alert('已保存到草稿箱', '网络不可用，动态将在网络恢复时自动发送');
+      }
     } catch (error) {
       Alert.alert('发布失败', error.message);
     } finally {
@@ -739,6 +764,9 @@ export default function App() {
 
   return (
     <NavigationContainer>
+      {/* 网络状态指示器 */}
+      <NetworkStatus />
+      
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Main">
           {props => <MainTabs {...props} currentUser={currentUser} darkMode={darkMode} />}
