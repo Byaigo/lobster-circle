@@ -15,6 +15,13 @@ const postSchema = new mongoose.Schema({
     url: String,
     publicId: String
   }],
+  videos: [{
+    url: String,
+    publicId: String,
+    duration: Number,
+    thumbnail: String,
+    size: Number
+  }],
   likes: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
