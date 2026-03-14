@@ -20,7 +20,8 @@ import {
   AppstoreOutlined,
   MessageOutlined,
   LoginOutlined,
-  BugOutlined
+  BugOutlined,
+  EyeOutlined
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -45,6 +46,7 @@ export default function AdminLayout({ children, onLogout }) {
     { key: '/sensitive-words', icon: <SafetyOutlined />, label: '敏感词管理' },
     { key: '/logs', icon: <FileDoneOutlined />, label: '操作日志' },
     { key: '/errors', icon: <BugOutlined />, label: '错误日志' },
+    { key: '/audit', icon: <EyeOutlined />, label: '内容审核' },
   ];
 
   const handleMenuClick = ({ key }) => {
