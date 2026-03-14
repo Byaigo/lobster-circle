@@ -99,6 +99,10 @@ const nearbyRoutes = require('./routes/nearby');
 const groupRoutes = require('./routes/groups');
 const visitorRoutes = require('./routes/visitors');
 
+// 内容增强功能路由
+const pollRoutes = require('./routes/polls');
+const draftRoutes = require('./routes/drafts');
+
 // 注册路由
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -119,6 +123,10 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/nearby', nearbyRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/visitors', visitorRoutes);
+
+// 内容增强功能
+app.use('/api/polls', pollRoutes);
+app.use('/api/drafts', draftRoutes);
 
 // 404 处理
 app.use((req, res) => {
