@@ -106,6 +106,9 @@ const draftRoutes = require('./routes/drafts');
 // 个性化功能路由
 const customizeRoutes = require('./routes/customize');
 
+// 互动娱乐功能路由
+const entertainmentRoutes = require('./routes/entertainment');
+
 // 注册路由
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -133,6 +136,9 @@ app.use('/api/drafts', draftRoutes);
 
 // 个性化功能
 app.use('/api/customize', customizeRoutes);
+
+// 互动娱乐功能
+app.use('/api/entertainment', entertainmentRoutes);
 
 // 404 处理
 app.use((req, res) => {
