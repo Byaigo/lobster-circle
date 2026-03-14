@@ -103,6 +103,9 @@ const visitorRoutes = require('./routes/visitors');
 const pollRoutes = require('./routes/polls');
 const draftRoutes = require('./routes/drafts');
 
+// 个性化功能路由
+const customizeRoutes = require('./routes/customize');
+
 // 注册路由
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -127,6 +130,9 @@ app.use('/api/visitors', visitorRoutes);
 // 内容增强功能
 app.use('/api/polls', pollRoutes);
 app.use('/api/drafts', draftRoutes);
+
+// 个性化功能
+app.use('/api/customize', customizeRoutes);
 
 // 404 处理
 app.use((req, res) => {
