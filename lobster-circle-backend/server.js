@@ -40,6 +40,7 @@ const updateRoutes = require('./routes/update');
 const cacheRoutes = require('./routes/cache');
 const searchRoutes = require('./routes/search');
 const auditRoutes = require('./routes/audit');
+const recommendRoutes = require('./routes/recommend');
 const { auditPost, auditComment } = require('./middleware/contentAudit');
 
 // 导入中间件
@@ -148,6 +149,7 @@ app.use('/api/cache', cacheRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/errors', errorRoutes);
 app.use('/api/audit', auditRoutes);
+app.use('/api/recommend', recommendRoutes);
 
 // 错误处理（必须在最后）
 app.use(notFoundHandler);

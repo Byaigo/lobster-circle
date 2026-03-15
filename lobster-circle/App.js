@@ -32,6 +32,7 @@ import CheckInHistoryScreen from './screens/CheckInHistoryScreen';
 import NetworkStatus from './components/NetworkStatus';
 import VideoPostScreen from './screens/VideoPostScreen';
 import VideoPlayer from './components/VideoPlayer';
+import DiscoverScreen from './screens/DiscoverScreen';
 
 // 新增社交功能页面
 import NearbyScreen from './screens/NearbyScreen';
@@ -389,6 +390,9 @@ function HomeScreen({ currentUser, users, posts, setPosts, favorites, setFavorit
       <View style={[styles.header, darkMode && styles.headerDark]}>
         <Text style={[styles.headerTitle, darkMode && styles.textDark]}>🦞 龙虾圈</Text>
         <View style={styles.headerButtons}>
+          <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Discover')}>
+            <Text style={styles.iconButtonText}>🧭</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.iconButton} onPress={() => setShowSearch(!showSearch)}>
             <Text style={styles.iconButtonText}>🔍</Text>
           </TouchableOpacity>
@@ -821,6 +825,9 @@ export default function App() {
         </Stack.Screen>
         <Stack.Screen name="VideoPost">
           {props => <VideoPostScreen {...props} darkMode={darkMode} />}
+        </Stack.Screen>
+        <Stack.Screen name="Discover">
+          {props => <DiscoverScreen {...props} darkMode={darkMode} navigation={props.navigation} />}
         </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
